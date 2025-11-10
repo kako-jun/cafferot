@@ -1,0 +1,274 @@
+= Playwright MCP セットアップガイド
+:toc:
+:toc-title: 目次
+:sectnums:
+:source-highlighter: rouge
+
+== 概要
+
+このドキュメントでは、Claude Code で Playwright を MCP (Model Context Protocol) サーバーとして動作させるために必要な全ての作業手順を記述します。
+
+このセットアップは **グローバルインストール** 方式であり、一度セットアップすれば複数のリポジトリで使い回すことができます。
+
+== 前提条件
+
+* Node.js がインストールされていること
+* Claude Code がインストールされていること
+* プロジェクトディレクトリが作成されていること
+
+== セットアップ手順
+
+NOTE: 以下の手順 1〜5 は **一度だけ実行** すればよく、複数のプロジェクトで使い回せます。手順 6 のみ、各プロジェクトで実行する必要があります。
+
+=== 1. MCP サーバーディレクトリの作成（グローバル）
+
+Claude Code の設定ディレクトリ内に Playwright MCP サーバー用のディレクトリを作成します。
+
+このディレクトリは `~/.config/claude-code/mcp-servers/` 配下に作成されるため、**全てのプロジェクトで共通して使用できます**。
+
+[source,bash]
+----
+mkdir -p ~/.config/claude-code/mcp-servers/playwright
+cd ~/.config/claude-code/mcp-servers/playwright
+----
+
+NOTE: このパスは全プロジェクト共通のグローバル設定です。プロジェクトごとにインストールする必要はありません。
+
+=== 2. package.json の作成
+
+Playwright MCP サーバーに必要な依存関係を定義する `package.json` を作成します。
+
+[source,json]
+----
+{
+  "name": "playwright-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server for Playwright automation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
+  }
+}
+----
+
+=== 3. 依存関係のインストール
+
+npm を使用して必要なパッケージをインストールします。
+
+[source,bash]
+----
+npm install
+----
+
+このコマンドで以下のパッケージがインストールされます：
+
+* `@modelcontextprotocol/sdk` - MCP プロトコルの実装
+* `@playwright/test` - Playwright テストランナー
+* `playwright` - ブラウザ自動化ライブラリ
+
+=== 4. Playwright ブラウザのインストール
+
+Playwright が使用するブラウザバイナリをインストールします。
+
+[source,bash]
+----
+npx playwright install
+----
+
+これにより、Chromium、Firefox、WebKit の各ブラウザがインストールされます。
+
+=== 5. MCP サーバー実装ファイルの作成
+
+`index.js` ファイルを作成し、Playwright MCP サーバーの実装を記述します。
+
+主な機能：
+
+* `playwright_launch` - ブラウザの起動
+* `playwright_navigate` - URL へのナビゲーション
+* `playwright_click` - 要素のクリック
+* `playwright_fill` - フォーム入力
+* `playwright_screenshot` - スクリーンショット撮影
+* `playwright_get_text` - テキスト取得
+* `playwright_evaluate` - JavaScript 実行
+* `playwright_close` - ブラウザの終了
+
+NOTE: 実装の詳細は `/home/kako-jun/.config/claude-code/mcp-servers/playwright/index.js` を参照してください。
+
+=== 6. プロジェクト設定ファイルの作成（各プロジェクトごと）
+
+Playwright MCP を使用したい **各プロジェクトのルート** に `.mcp.json` ファイルを作成し、グローバルにインストールした MCP サーバーを登録します。
+
+[source,bash]
+----
+cd /path/to/your/project  # プロジェクトルートへ移動
+----
+
+`.mcp.json` を作成：
+
+[source,json]
+----
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": ["/home/YOUR_USERNAME/.config/claude-code/mcp-servers/playwright/index.js"],
+      "env": {}
+    }
+  }
+}
+----
+
+WARNING: `YOUR_USERNAME` は実際のユーザー名に置き換えてください。パスは絶対パスで指定する必要があります。
+
+TIP: `~/.config` の代わりに `/home/YOUR_USERNAME/.config` と絶対パスで記述することを推奨します。チルダ記号 `~` が展開されない環境があるためです。
+
+==== 複数プロジェクトでの利用
+
+この `.mcp.json` ファイルを各プロジェクトに配置することで、同じグローバルインストールされた Playwright MCP サーバーを複数のプロジェクトで使い回すことができます。
+
+[source,bash]
+----
+# 例：複数のプロジェクトで同じ設定を使用
+~/repos/project-a/.mcp.json  # プロジェクトA
+~/repos/project-b/.mcp.json  # プロジェクトB
+~/repos/project-c/.mcp.json  # プロジェクトC
+
+# すべて同じグローバルサーバーを参照
+# → ~/.config/claude-code/mcp-servers/playwright/index.js
+----
+
+=== 7. Claude Code の再起動
+
+設定を反映させるために Claude Code を再起動します。
+
+== 動作確認
+
+以下のコマンドで Playwright MCP が正しく動作していることを確認できます。
+
+[source,plaintext]
+----
+# Claude Code に以下のように指示
+開発サーバーが http://localhost:3000/ で起動済みなので Playwright MCP の動作確認をして
+----
+
+Claude は以下の操作を実行します：
+
+1. ブラウザの起動 (`playwright_launch`)
+2. ページへのナビゲーション (`playwright_navigate`)
+3. スクリーンショットの撮影 (`playwright_screenshot`)
+4. 要素の操作（必要に応じて）
+
+== ディレクトリ構造
+
+=== グローバル設定（一度だけセットアップ）
+
+[source,plaintext]
+----
+~/.config/claude-code/mcp-servers/playwright/
+├── index.js              # MCP サーバー実装
+├── package.json          # 依存関係定義
+├── package-lock.json     # ロックファイル
+├── node_modules/         # インストールされたパッケージ
+├── README.md             # ドキュメント
+└── test.js              # テストファイル（オプション）
+----
+
+=== プロジェクトごとの設定（各プロジェクトで作成）
+
+[source,plaintext]
+----
+# プロジェクトA
+~/repos/project-a/
+├── .mcp.json            # グローバルサーバーへの参照
+└── (プロジェクトファイル...)
+
+# プロジェクトB
+~/repos/project-b/
+├── .mcp.json            # グローバルサーバーへの参照（同じ内容）
+└── (プロジェクトファイル...)
+
+# プロジェクトC
+~/repos/2025/cafferot/
+├── .mcp.json            # グローバルサーバーへの参照（同じ内容）
+└── (プロジェクトファイル...)
+----
+
+IMPORTANT: `.mcp.json` はプロジェクトごとに作成しますが、参照先は全て同じグローバルインストールされた Playwright MCP サーバーです。
+
+== 利用可能な MCP ツール
+
+Playwright MCP サーバーが提供する主なツール：
+
+[cols="1,3"]
+|===
+|ツール名 |説明
+
+|`mcp__playwright__playwright_launch`
+|ブラウザインスタンスを起動（chromium、firefox、webkit）
+
+|`mcp__playwright__playwright_navigate`
+|指定された URL にナビゲート
+
+|`mcp__playwright__playwright_click`
+|CSS セレクタで要素をクリック
+
+|`mcp__playwright__playwright_fill`
+|入力フィールドに値を入力
+
+|`mcp__playwright__playwright_screenshot`
+|ページのスクリーンショットを撮影
+
+|`mcp__playwright__playwright_get_text`
+|要素のテキストコンテンツを取得
+
+|`mcp__playwright__playwright_evaluate`
+|ページコンテキストで JavaScript を実行
+
+|`mcp__playwright__playwright_close`
+|ブラウザを終了
+|===
+
+== トラブルシューティング
+
+=== ブラウザが起動しない
+
+[source,bash]
+----
+# ブラウザバイナリを再インストール
+cd ~/.config/claude-code/mcp-servers/playwright
+npx playwright install
+----
+
+=== MCP サーバーが認識されない
+
+1. `.mcp.json` のパスが正しいか確認
+2. Claude Code を再起動
+3. エラーログを確認（Claude Code のログ出力を参照）
+
+=== スクリーンショットが保存されない
+
+* `/tmp` ディレクトリへの書き込み権限を確認
+* ディスクの空き容量を確認
+
+== 参考資料
+
+* https://playwright.dev/[Playwright 公式ドキュメント]
+* https://modelcontextprotocol.io/[Model Context Protocol 仕様]
+* https://github.com/anthropics/claude-code[Claude Code リポジトリ]
+
+== 更新履歴
+
+[cols="1,2,3"]
+|===
+|日付 |バージョン |変更内容
+
+|2025-11-10
+|1.0.0
+|初版作成
+|===

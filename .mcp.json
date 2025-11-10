@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": ["/home/kako-jun/.config/claude-code/mcp-servers/playwright/index.js"],
+      "env": {}
+    }
+  }
+}
