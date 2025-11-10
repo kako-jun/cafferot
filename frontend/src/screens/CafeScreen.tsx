@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { CafeView } from '../components/CafeView'
-import SaveDiscardButtons from '../components/SaveDiscardButtons'
+import Scoreboard from '../components/Scoreboard'
+import ChatLog from '../components/ChatLog'
+import PlayerStats from '../components/PlayerStats'
+import NotificationPanel from '../components/NotificationPanel'
 import { Mode } from '../types'
 
 interface CafeScreenProps {
@@ -11,6 +14,7 @@ interface CafeScreenProps {
 
 function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenProps) {
   const [mode, setMode] = useState<Mode>('edit')
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
 
   // ダミーデータ
   const myCafe = {
@@ -29,6 +33,27 @@ function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenP
     { id: '6', name: 'カフェF', level: 2, displayedCafferots: [] },
     { id: '7', name: 'カフェG', level: 4, displayedCafferots: [] },
     { id: '8', name: 'カフェH', level: 1, displayedCafferots: [] },
+    { id: '9', name: 'カフェI', level: 3, displayedCafferots: [] },
+    { id: '10', name: 'カフェJ', level: 2, displayedCafferots: [] },
+    { id: '11', name: 'カフェK', level: 4, displayedCafferots: [] },
+    { id: '12', name: 'カフェL', level: 3, displayedCafferots: [] },
+    { id: '13', name: 'カフェM', level: 5, displayedCafferots: [] },
+    { id: '14', name: 'カフェN', level: 2, displayedCafferots: [] },
+    { id: '15', name: 'カフェO', level: 1, displayedCafferots: [] },
+    { id: '16', name: 'カフェP', level: 4, displayedCafferots: [] },
+  ]
+
+  // スコアボード用のダミーデータ
+  const playerScores = [
+    { id: 'my-cafe', name: 'マイカフェ', level: 3, revenue: 5400, popularity: 3, isOwn: true },
+    { id: '1', name: 'カフェA', level: 2, revenue: 3200, popularity: 2 },
+    { id: '2', name: 'カフェB', level: 4, revenue: 7800, popularity: 4 },
+    { id: '3', name: 'カフェC', level: 1, revenue: 1500, popularity: 1 },
+    { id: '4', name: 'カフェD', level: 5, revenue: 9200, popularity: 5 },
+    { id: '5', name: 'カフェE', level: 3, revenue: 4600, popularity: 3 },
+    { id: '6', name: 'カフェF', level: 2, revenue: 2800, popularity: 2 },
+    { id: '7', name: 'カフェG', level: 4, revenue: 6500, popularity: 4 },
+    { id: '8', name: 'カフェH', level: 1, revenue: 1200, popularity: 1 },
   ]
 
   return (
@@ -41,6 +66,24 @@ function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenP
             Caffèrot
           </h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAlertOpen(!isAlertOpen)}
+              className={`flex h-10 w-10 items-center justify-center rounded transition-colors relative ${
+                isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              title="通知"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              {/* 未読バッジ */}
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
             <button
               onClick={onToggleDark}
               className={`flex h-10 w-10 items-center justify-center rounded transition-colors ${
@@ -106,16 +149,25 @@ function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenP
         />
       </main>
 
-      {/* フローティングボタン */}
-      <SaveDiscardButtons
-        hasUnsavedChanges={false}
-        isSaving={false}
+      {/* プレイヤーステータス（左上） */}
+      <PlayerStats
+        cafeName="マイカフェ"
+        level={3}
+        revenue={5400}
+        revenuePerSecond={12}
+        popularity={3}
+        cafferotCount={0}
         isDark={isDark}
-        onSave={() => {}}
-        onDiscard={() => {}}
-        mode={mode}
-        onModeChange={setMode}
       />
+
+      {/* チャットログ（左下） */}
+      <ChatLog isDark={isDark} />
+
+      {/* スコアボード（右下） */}
+      <Scoreboard players={playerScores} isDark={isDark} />
+
+      {/* 通知パネル */}
+      <NotificationPanel isDark={isDark} isOpen={isAlertOpen} onClose={() => setIsAlertOpen(false)} />
     </div>
   )
 }
