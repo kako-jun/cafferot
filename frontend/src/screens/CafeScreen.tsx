@@ -4,15 +4,16 @@ import Scoreboard from '../components/Scoreboard'
 import ChatLog from '../components/ChatLog'
 import PlayerStats from '../components/PlayerStats'
 import NotificationPanel from '../components/NotificationPanel'
-import { Mode } from '../types'
+import { Mode, Cafe } from '../types'
 
 interface CafeScreenProps {
   isDark: boolean
   onToggleDark: () => void
   onNavigateToCafferots: () => void
+  onCafeClick: (cafe: Cafe, isOwn: boolean) => void
 }
 
-function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenProps) {
+function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots, onCafeClick }: CafeScreenProps) {
   const [mode, setMode] = useState<Mode>('edit')
   const [isAlertOpen, setIsAlertOpen] = useState(false)
 
@@ -143,7 +144,8 @@ function CafeScreen({ isDark, onToggleDark, onNavigateToCafferots }: CafeScreenP
           nearbyCafes={nearbyCafes}
           isDark={isDark}
           onCafeClick={(cafe) => {
-            console.log('Clicked cafe:', cafe.name)
+            const isOwn = cafe.id === myCafe.id
+            onCafeClick(cafe, isOwn)
           }}
           onNavigateToCafferots={onNavigateToCafferots}
         />
