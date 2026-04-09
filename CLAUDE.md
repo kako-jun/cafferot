@@ -689,28 +689,23 @@ export const validateAudio = (file: File): boolean => {
 ```
 
 ### 3.3 LocalStorage保存
-**`packages/cafferot-frontend/src/services/storage.ts`**
+**`frontend/src/services/storage.ts`**
+
+localStorageは単一キー `"cafferot"` にJSON objectとして保存する。
+darkModeやcafferots配列など、全データをこのキー配下にまとめる。
 
 ```typescript
-import type { Cafferot } from 'cafferot-shared'
+import type { Cafferot } from '../types'
 
-const STORAGE_KEY = 'cafferots'
+const STORAGE_KEY = 'cafferot'
 
-export const saveCafferot = async (cafferot: Cafferot): Promise<void> => {
-  const existing = getCafferots()
-  existing.push(cafferot)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
+interface StorageData {
+  darkMode: boolean
+  cafferots: Cafferot[]
 }
 
-export const getCafferots = (): Cafferot[] => {
-  const data = localStorage.getItem(STORAGE_KEY)
-  return data ? JSON.parse(data) : []
-}
-
-export const deleteCafferot = (id: string): void => {
-  const cafferots = getCafferots().filter(c => c.id !== id)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cafferots))
-}
+// load() / save() で try-catch付きの読み書き
+// getDarkMode / setDarkMode / getCafferots / setCafferots を公開
 ```
 
 ### 3.4 IndexedDB対応（将来的な拡張）

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import SaveDiscardButtons from '../components/SaveDiscardButtons'
+import { getCafferots, setCafferots as saveCafferots } from '../services/storage'
 import type { Cafferot } from '../types'
 
 type CafferotType = 'mine' | 'adopted' | 'community'
@@ -30,10 +31,8 @@ function CafferotsScreen({
     const loadCafferots = () => {
       setLoading(true)
       try {
-        const saved = localStorage.getItem('cafferots')
-        if (saved) {
-          setCafferots(JSON.parse(saved))
-        }
+        const saved = getCafferots()
+        setCafferots(saved)
       } catch (error) {
         console.error('Failed to load cafferots:', error)
       } finally {
@@ -47,7 +46,7 @@ function CafferotsScreen({
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      localStorage.setItem('cafferots', JSON.stringify(cafferots))
+      saveCafferots(cafferots)
       setHasUnsavedChanges(false)
     } catch (error) {
       console.error('Failed to save:', error)
@@ -59,10 +58,7 @@ function CafferotsScreen({
   // 変更を破棄
   const handleDiscard = () => {
     setShowDiscardConfirm(false)
-    const saved = localStorage.getItem('cafferots')
-    if (saved) {
-      setCafferots(JSON.parse(saved))
-    }
+    setCafferots(getCafferots())
     setHasUnsavedChanges(false)
   }
 
@@ -101,7 +97,7 @@ function CafferotsScreen({
 
       const updated = [...cafferots, ...newCafferots]
       setCafferots(updated)
-      localStorage.setItem('cafferots', JSON.stringify(updated))
+      saveCafferots(updated)
     } catch (error) {
       console.error('Failed to upload files:', error)
     } finally {
@@ -120,7 +116,7 @@ function CafferotsScreen({
 
     const updated = cafferots.filter((c) => c.id !== deletingCafferot.id)
     setCafferots(updated)
-    localStorage.setItem('cafferots', JSON.stringify(updated))
+    saveCafferots(updated)
 
     if (selectedCafferot?.id === deletingCafferot.id) {
       setSelectedCafferot(null)

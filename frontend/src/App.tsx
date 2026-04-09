@@ -3,22 +3,20 @@ import { AnimatePresence } from 'framer-motion'
 import CafeScreen from './screens/CafeScreen'
 import CafferotsScreen from './screens/CafferotsScreen'
 import CafeDetailScreen from './screens/CafeDetailScreen'
+import { getDarkMode, setDarkMode } from './services/storage'
 import type { Cafe } from './types'
 
 type Screen = 'cafe' | 'cafferots' | 'cafeDetail'
 
 function App() {
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('darkMode')
-    return saved ? JSON.parse(saved) : false
-  })
+  const [isDark, setIsDark] = useState(() => getDarkMode())
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('cafe')
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null)
   const [isOwnCafe, setIsOwnCafe] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDark))
+    setDarkMode(isDark)
   }, [isDark])
 
   const handleCafeClick = (cafe: Cafe, isOwn: boolean) => {
